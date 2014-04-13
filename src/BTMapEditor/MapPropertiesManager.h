@@ -13,36 +13,17 @@ class MapPropertiesManager : public QWidget
 Q_OBJECT;
 
 public:
-	MapPropertiesManager(QVector <Player *> &players, QString &mapDescription, QList <BTech::GameVersion> &allowedVersions);
-
-	void setPlayers(QVector <Player *> &players);
+	MapPropertiesManager(QString &mapDescription, QList <BTech::GameVersion> &allowedVersions);
 	void refresh();
 
 public slots:
 	void onMapLoaded();
 
-signals:
-	void playerChosen(Player *player);
-	void playerAdded();
-	void playerInfoChanged();
-	void playerNeedsRemoving(Player *player);
-	void playerRemoved();
-
 private:
-	static const int MAX_PLAYERS_SIZE = 8;
-
 	static const int DEFAULT_WIDTH = 200;
 
-	QVector <Player *> &players;
 	QString &mapDescriptionRef;
 	QList <BTech::GameVersion> &allowedVersions;
-
-	QComboBox *playersComboBox;
-	QPushButton *addPlayerButton;
-	QPushButton *removePlayerButton;
-	QLineEdit *playerName;
-	QTextEdit *playerDescription;
-	QPushButton *confirmSavePlayerButton;
 
 	QTextEdit *mapDescription;
 	QPushButton *confirmSaveMapDescriptionButton;
@@ -51,14 +32,7 @@ private:
 
 	void initVersionsButton();
 
-	Player * getPlayer(const QString &name) const;
-	Player * getCurrentPlayer() const;
-
 private slots:
-	void onPlayerChosen();
-	void addNewPlayer();
-	void removePlayer();
-	void savePlayer();
 	void saveMapDescription();
 	void editVersions();
 };

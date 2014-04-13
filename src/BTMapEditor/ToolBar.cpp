@@ -16,7 +16,7 @@ ToolBar::ToolBar(Map *map)
 
 void ToolBar::setPlayers(QVector <Player *> &players)
 {
-	mapPropertiesManager->setPlayers(players);
+	playersManager->setPlayers(players);
 }
 
 void ToolBar::setHexes(QVector <Hex *> &hexes)
@@ -30,12 +30,14 @@ void ToolBar::reloadData()
 void ToolBar::refresh()
 {
 	mapPropertiesManager->refresh();
+	playersManager->refresh();
 	unitsManager->refresh();
 }
 
 void ToolBar::onMapLoaded()
 {
 	mapPropertiesManager->onMapLoaded();
+	playersManager->onMapLoaded();
 	unitsManager->onMapLoaded();
 }
 
@@ -48,6 +50,7 @@ void ToolBar::initTabs()
 {
 	tabs = new QTabWidget;
 	tabs->addTab(mapPropertiesManager, BTech::Strings::LabelMapProperties);
+	tabs->addTab(playersManager,       BTech::Strings::LabelPlayers);
 	tabs->addTab(unitsManager,         BTech::Strings::LabelUnits);
 	tabs->addTab(terrainManager,       BTech::Strings::LabelTerrain);
 	tabs->addTab(clickModeManager,     BTech::Strings::LabelClickMode);
@@ -57,19 +60,19 @@ void ToolBar::initTabs()
 
 void ToolBar::initManagers(QVector <Player *> &players, QVector <Hex *> &hexes, QString &mapDescriptionRef, QList <BTech::GameVersion> &allowedVersions)
 {
-	mapPropertiesManager = new MapPropertiesManager(players, mapDescriptionRef, allowedVersions);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerChosen,        this, &ToolBar::playerChosen);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerNeedsRemoving, this, &ToolBar::removePlayer);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerAdded,         this, &ToolBar::refresh);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerRemoved,       this, &ToolBar::refresh);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerAdded,         this, &ToolBar::playersInfoChanged);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerRemoved,       this, &ToolBar::playersInfoChanged);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerInfoChanged,   this, &ToolBar::playersInfoChanged);
+	playersManager = new PlayersManager(players, allowedVersions);
+	connect(playersManager, &PlayersManager::playerChosen,        this, &ToolBar::playerChosen);
+	connect(playersManager, &PlayersManager::playerNeedsRemoving, this, &ToolBar::removePlayer);
+	connect(playersManager, &PlayersManager::playerAdded,         this, &ToolBar::refresh);
+	connect(playersManager, &PlayersManager::playerRemoved,       this, &ToolBar::refresh);
+	connect(playersManager, &PlayersManager::playerAdded,         this, &ToolBar::playersInfoChanged);
+	connect(playersManager, &PlayersManager::playerRemoved,       this, &ToolBar::playersInfoChanged);
+	connect(playersManager, &PlayersManager::playerInfoChanged,   this, &ToolBar::playersInfoChanged);
 
 	unitsManager = new UnitsManager(players);
 	connect(unitsManager,         &UnitsManager::playerChosen,              this,         &ToolBar::playerChosen);
 	connect(unitsManager,         &UnitsManager::unitChosen,                this,         &ToolBar::unitChosen);
-	connect(mapPropertiesManager, &MapPropertiesManager::playerInfoChanged, unitsManager, &UnitsManager::refresh);
+	connect(playersManager, &PlayersManager::playerInfoChanged, unitsManager, &UnitsManager::refresh);
 
 	terrainManager = new TerrainManager;
 	connect(terrainManager, &TerrainManager::terrainChosen, this, &ToolBar::terrainChosen);
@@ -77,6 +80,8 @@ void ToolBar::initManagers(QVector <Player *> &players, QVector <Hex *> &hexes, 
 	clickModeManager = new ClickModeManager;
 	connect(clickModeManager, &ClickModeManager::hexInfoChanged,    this, &ToolBar::hexesInfoChanged);
 	connect(clickModeManager, &ClickModeManager::mechNeedsRemoving, this, &ToolBar::removeMech);
+
+	mapPropertiesManager = new MapPropertiesManager(mapDescriptionRef, allowedVersions);
 }
 
 void ToolBar::initWindow()

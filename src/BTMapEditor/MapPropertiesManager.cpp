@@ -5,32 +5,9 @@
  * \class MapPropertiesManager
  */
 
-MapPropertiesManager::MapPropertiesManager(QVector <Player *> &players, QString &mapDescriptionRef, QList <BTech::GameVersion> &allowedVersions)
-	: players(players), mapDescriptionRef(mapDescriptionRef), allowedVersions(allowedVersions)
+MapPropertiesManager::MapPropertiesManager(QString &mapDescriptionRef, QList <BTech::GameVersion> &allowedVersions)
+	: mapDescriptionRef(mapDescriptionRef), allowedVersions(allowedVersions)
 {
-	QLabel *playersLabel = new QLabel(BTech::Strings::LabelPlayers);
-
-	playersComboBox = new QComboBox;
-	connect(playersComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &MapPropertiesManager::onPlayerChosen);
-
-	addPlayerButton = new QPushButton(BTech::Strings::ButtonAddNewPlayer);
-	connect(addPlayerButton, &QPushButton::pressed, this, &MapPropertiesManager::addNewPlayer);
-	addPlayerButton->setEnabled(false);
-	removePlayerButton = new QPushButton(BTech::Strings::ButtonRemovePlayer);
-	connect(removePlayerButton, &QPushButton::pressed, this, &MapPropertiesManager::removePlayer);
-
-	QLabel *playerNameLabel = new QLabel(BTech::Strings::LabelName);
-
-	playerName = new QLineEdit;
-	playerDescription = new QTextEdit;
-	playerDescription->setFixedHeight(200);
-	playerNameLabel->setBuddy(playerName);
-
-	confirmSavePlayerButton = new QPushButton(BTech::Strings::ButtonSavePlayerDescription);
-	confirmSavePlayerButton->setFixedWidth(200);
-	connect(confirmSavePlayerButton, &QPushButton::pressed, this, &MapPropertiesManager::savePlayer);
-	confirmSavePlayerButton->setEnabled(false);
-
 	QLabel *mapDescriptionLabel = new QLabel(BTech::Strings::LabelMap);
 
 	mapDescription = new QTextEdit;
@@ -45,23 +22,6 @@ MapPropertiesManager::MapPropertiesManager(QVector <Player *> &players, QString 
 
 	/* layout */
 
-	QHBoxLayout *playerButtonsLayout = new QHBoxLayout;
-	playerButtonsLayout->addWidget(addPlayerButton);
-	playerButtonsLayout->addWidget(removePlayerButton);
-
-	QHBoxLayout *playerNameLayout = new QHBoxLayout;
-	playerNameLayout->addWidget(playerNameLabel);
-	playerNameLayout->addSpacerItem(new QSpacerItem(BTech::SMALL_SPACER_SIZE, BTech::SYMBOLIC_SPACER_SIZE));
-	playerNameLayout->addWidget(playerName);
-
-	QHBoxLayout *savePlayerButtonLayout = new QHBoxLayout;
-	savePlayerButtonLayout->addSpacerItem(new QSpacerItem(BTech::ENORMOUS_SPACER_SIZE, BTech::SYMBOLIC_SPACER_SIZE));
-	savePlayerButtonLayout->addWidget(confirmSavePlayerButton);
-
-	QFrame *line = new QFrame;
-	line->setFrameShape(QFrame::HLine);
-	line->setFrameShadow(QFrame::Sunken);
-
 	QHBoxLayout *saveMapDescriptionButtonLayout = new QHBoxLayout;
 	saveMapDescriptionButtonLayout->addSpacerItem(new QSpacerItem(BTech::ENORMOUS_SPACER_SIZE, BTech::SYMBOLIC_SPACER_SIZE));
 	saveMapDescriptionButtonLayout->addWidget(confirmSaveMapDescriptionButton);
@@ -74,13 +34,6 @@ MapPropertiesManager::MapPropertiesManager(QVector <Player *> &players, QString 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setAlignment(Qt::AlignTop);
 
-	layout->addWidget(playersLabel);
-	layout->addWidget(playersComboBox);
-	layout->addItem(playerButtonsLayout);
-	layout->addItem(playerNameLayout);
-	layout->addWidget(playerDescription);
-	layout->addItem(savePlayerButtonLayout);
-	layout->addWidget(line);
 	layout->addWidget(mapDescriptionLabel);
 	layout->addWidget(mapDescription);
 	layout->addItem(saveMapDescriptionButtonLayout);
@@ -90,42 +43,15 @@ MapPropertiesManager::MapPropertiesManager(QVector <Player *> &players, QString 
 	refresh();
 }
 
-void MapPropertiesManager::setPlayers(QVector <Player *> &players)
-{
-	this->players = players;
-	refresh();
-}
-
 void MapPropertiesManager::refresh()
 {
-	playersComboBox->clear();
-	for (Player *player : players)
-		playersComboBox->addItem(player->getName());
-	if (getCurrentPlayer() != nullptr) {
-		playerName->setText(getCurrentPlayer()->getName());
-		playerDescription->setText(getCurrentPlayer()->getDescription());
-	}
-
 	mapDescription->setText(mapDescriptionRef);
-
-	bool enabled = !players.empty();
-	playersComboBox->setEnabled(enabled);
-	removePlayerButton->setEnabled(enabled);
-	if (!enabled) {
-		playerName->clear();
-		playerDescription->clear();
-	}
-	playerName->setEnabled(enabled);
-	playerDescription->setEnabled(enabled);
-	confirmSavePlayerButton->setEnabled(enabled);
 }
 
 void MapPropertiesManager::onMapLoaded()
 {
 	mapDescription->setEnabled(true);
 	confirmSaveMapDescriptionButton->setEnabled(true);
-	addPlayerButton->setEnabled(true);
-	confirmSavePlayerButton->setEnabled(true);
 	versionsButton->setEnabled(true);
 	refresh();
 }
@@ -136,58 +62,6 @@ void MapPropertiesManager::initVersionsButton()
 	versionsButton->setFixedWidth(BTech::NAME_LINE_WIDTH);
 	connect(versionsButton, &QPushButton::pressed, this, &MapPropertiesManager::editVersions);
 	versionsButton->setEnabled(false);
-}
-
-Player * MapPropertiesManager::getPlayer(const QString &name) const
-{
-	for (Player *player : players)
-		if (player->getName() == name)
-			return player;
-	return nullptr;
-}
-
-Player * MapPropertiesManager::getCurrentPlayer() const
-{
-	return getPlayer(playersComboBox->currentText());
-}
-
-void MapPropertiesManager::onPlayerChosen()
-{
-	playerName->setText(getCurrentPlayer()->getName());
-	playerDescription->setText(getCurrentPlayer()->getDescription());
-	emit playerChosen(getCurrentPlayer());
-}
-
-void MapPropertiesManager::addNewPlayer()
-{
-	if (players.size() == MAX_PLAYERS_SIZE)
-		return;
-
-	QList <QString> existingNames;
-	for (Player *player : players)
-		existingNames.append(player->getName());
-	QString newName = BTech::General::indexString(BTech::Strings::UnnamedPlayer, existingNames);
-
-	Player *player = new Player;
-	player->setName(newName);
-
-	players.append(player);
-	refresh();
-	emit playerAdded();
-}
-
-void MapPropertiesManager::removePlayer()
-{
-	emit playerNeedsRemoving(getCurrentPlayer());
-	emit playerRemoved();
-}
-
-void MapPropertiesManager::savePlayer()
-{
-	getCurrentPlayer()->setDescription(playerDescription->document()->toPlainText());
-	getCurrentPlayer()->setName(playerName->text());
-	refresh();
-	emit playerInfoChanged();
 }
 
 void MapPropertiesManager::saveMapDescription()

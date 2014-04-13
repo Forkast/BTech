@@ -15,6 +15,7 @@ set (BTMapEditor_SRCS
 	TerrainManager.cpp
 	ToolBar.cpp
 	UnitsManager.cpp
+	PlayersManager.cpp
 )
 
 set (BTMapEditor_HDRS
@@ -33,6 +34,7 @@ set (BTMapEditor_HDRS
 	TerrainManager.h
 	ToolBar.h
 	UnitsManager.h
+	PlayersManager.h
 )
 
 qt5_wrap_cpp (BTMapEditor_SRCS ${BTMapEditor_HDRS})

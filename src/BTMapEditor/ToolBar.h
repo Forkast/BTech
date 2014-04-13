@@ -8,6 +8,7 @@
 #include "BTMapEditor/MapPropertiesManager.h"
 #include "BTMapEditor/TerrainManager.h"
 #include "BTMapEditor/UnitsManager.h"
+#include "BTMapEditor/PlayersManager.h"
 
 /**
  * \class ToolBar
@@ -42,6 +43,7 @@ signals:
 private:
 	QTabWidget *tabs;
 	MapPropertiesManager *mapPropertiesManager;
+	PlayersManager *playersManager;
 	UnitsManager *unitsManager;
 	TerrainManager *terrainManager;
 	ClickModeManager *clickModeManager;
